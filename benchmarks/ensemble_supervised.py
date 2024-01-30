@@ -15,7 +15,7 @@ class ObliqueRandomForestClassifierBenchmark(Predictor, Estimator, Benchmark):
     """
 
     param_names = ["representation", "n_jobs"]
-    params = (["dense", "sparse"], Benchmark.n_jobs_vals)
+    params = (["dense"], Benchmark.n_jobs_vals)
 
     def setup_cache(self):
         super().setup_cache()
