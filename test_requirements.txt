@@ -1,3 +1,4 @@
+asv
 pytest
 pytest-cov
 memory_profiler
