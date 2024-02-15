@@ -16,6 +16,8 @@ from sklearn.decomposition import TruncatedSVD
 from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import MaxAbsScaler, StandardScaler
+from .causal_trees_simulations import make_dataset_without_confounding, make_dataset_without_heterogeneity
+from .causal_trees_simulations import make_dataset_with_heterogeneity_and_confounding
 
 # memory location for caching datasets
 M = Memory(location=str(Path(__file__).resolve().parent / "cache"))
@@ -159,3 +161,33 @@ def _random_dataset(n_samples=1000, n_features=1000, representation="dense", dty
 
     X, X_val = train_test_split(X, test_size=0.1, random_state=0)
     return X, X_val, None, None
+
+
+@M.cache
+def _synth_dataset_without_confounding(n_samples=100000, n_features=100):
+    X, y, w = make_dataset_without_confounding(
+        n_samples=n_samples,
+        n_features=n_features
+    )
+    X, X_val, y, y_val, W, W_val = train_test_split(X, y, W, test_size=0.1, random_state=0)
+    return X, X_val, y, y_val, W, W_val
+
+
+@M.cache
+def _synth_dataset_without_heterogeneity(n_samples=100000, n_features=100):
+    X, y, w = make_dataset_without_heterogeneity(
+        n_samples=n_samples,
+        n_features=n_features
+    )
+    X, X_val, y, y_val, W, W_val = train_test_split(X, y, W, test_size=0.1, random_state=0)
+    return X, X_val, y, y_val, W, W_val
+
+
+@M.cache
+def _synth_dataset_with_heterogeneity_and_confounding(n_samples=100000, n_features=100):
+    X, y, w = make_dataset_with_heterogeneity_and_confounding(
+        n_samples=n_samples,
+        n_features=n_features
+    )
+    X, X_val, y, y_val, W, W_val = train_test_split(X, y, W, test_size=0.1, random_state=0)
+    return X, X_val, y, y_val, W, W_val
