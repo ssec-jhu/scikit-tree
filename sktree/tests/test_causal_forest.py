@@ -38,7 +38,7 @@ def get_causal_data(confounding, heterogeneity, n_samples, n_features):
     else:
         T = np.zeros(n_samples, dtype=int)
     y = np.random.normal(m + (W - 0.5) * T, 1)
-    return (X, W, y, e, T)
+    return (X, W, y, e, m, T)
 
 
 #@pytest.mark.parametrize("criterion", ["het", "mse"])
@@ -64,14 +64,14 @@ def test_grf_perf():
         cntr2 = 0
         for p, n in [(10, 800), (10, 1600), (20, 800), (20, 1600)]:
             print("Confounding = ", confounding, ", Heterogeneity = ", heterogeneity, ", p = ", p, ", n = ", n)
-            X, W, y, e, T = get_causal_data(confounding, heterogeneity, n, p)
+            X, W, y, e, m, T = get_causal_data(confounding, heterogeneity, n, p)
             
             # Random Forest without centering
             forest = CausalForestDML(**get_base_config()).fit(y, T=W, X=X) # Fit the model to the data
-            replications = 1
+            replications = 60
             GRF = np.zeros(replications)
             for cntr in range(0, replications):
-                X_rep, W_rep, y_rep, e_rep, T_rep = get_causal_data(confounding, heterogeneity, 1000, p)
+                X_rep, W_rep, y_rep, e_rep, m_rep, T_rep = get_causal_data(confounding, heterogeneity, 1000, p)
                 GRF[cntr] = forest.score(y_rep, T=W_rep, X=X_rep) # Calculate mean squared error
             GRF_mean = np.mean(GRF)    
             ground_truth = mse_truth[4*cntr1+cntr2, 2]
@@ -79,13 +79,13 @@ def test_grf_perf():
             #np.testing.assert_allclose(mse, ground_truth, rtol=0.5, atol=1.0)
             
             # Random Forest with centering
-            y = y - (W - 0.5) * T
+            y = y - (m + (e - 0.5) * T)
             W = W - e
             forest = CausalForestDML(**get_base_config()).fit(y, T=W, X=X) # Fit the model to the data
             GRF = np.zeros(replications)
             for cntr in range(0, replications):
-                X_rep, W_rep, y_rep, e_rep, T_rep = get_causal_data(confounding, heterogeneity, 1000, p)
-                y_rep = y_rep - (W_rep - 0.5) * T_rep
+                X_rep, W_rep, y_rep, e_rep, m_rep, T_rep = get_causal_data(confounding, heterogeneity, 1000, p)
+                y_rep = y_rep - (m_rep + (e_rep - 0.5) * T_rep)
                 W_rep = W_rep - e_rep
                 GRF[cntr] = forest.score(y_rep, T=W_rep, X=X_rep) # Calculate mean squared error
             GRF_mean = np.mean(GRF)    
