@@ -10,13 +10,12 @@
 
 import numpy as np
 
-cimport numpy as cnp
 from libcpp.vector cimport vector
 
 from .._lib.sklearn.tree._criterion cimport Criterion
 from .._lib.sklearn.tree._splitter cimport SplitRecord, Splitter
-from .._lib.sklearn.tree._utils cimport UINT32_t
-from .._lib.sklearn.utils._typedefs cimport float32_t, float64_t, intp_t
+from .._lib.sklearn.tree._tree cimport ParentInfo
+from .._lib.sklearn.utils._typedefs cimport float32_t, float64_t, int8_t, intp_t, uint32_t
 from ._sklearn_splitter cimport sort
 
 
@@ -30,6 +29,8 @@ cdef struct ObliqueSplitRecord:
     float64_t improvement          # Impurity improvement given parent node.
     float64_t impurity_left        # Impurity of the left split.
     float64_t impurity_right       # Impurity of the right split.
+    unsigned char missing_go_to_left  # Controls if missing values go to the left node.
+    intp_t n_missing            # Number of missing values for the feature being split on
 
     vector[float32_t]* proj_vec_weights  # weights of the vector (max_features,)
     vector[intp_t]* proj_vec_indices     # indices of the features (max_features,)
@@ -78,18 +79,15 @@ cdef class BaseObliqueSplitter(Splitter):
 
     cdef int node_split(
         self,
-        float64_t impurity,   # Impurity of the node
+        ParentInfo* parent,
         SplitRecord* split,
-        intp_t* n_constant_features,
-        float64_t lower_bound,
-        float64_t upper_bound,
     ) except -1 nogil
 
     cdef inline void fisher_yates_shuffle_memview(
         self,
         intp_t[::1] indices_to_sample,
         intp_t grid_size,
-        UINT32_t* random_state
+        uint32_t* random_state
     ) noexcept nogil
 
 cdef class ObliqueSplitter(BaseObliqueSplitter):
@@ -114,11 +112,8 @@ cdef class ObliqueSplitter(BaseObliqueSplitter):
 cdef class BestObliqueSplitter(ObliqueSplitter):
     cdef int node_split(
         self,
-        float64_t impurity,   # Impurity of the node
+        ParentInfo* parent,
         SplitRecord* split,
-        intp_t* n_constant_features,
-        float64_t lower_bound,
-        float64_t upper_bound,
     ) except -1 nogil
 
 
@@ -137,11 +132,8 @@ cdef class RandomObliqueSplitter(ObliqueSplitter):
 
     cdef int node_split(
         self,
-        float64_t impurity,   # Impurity of the node
+        ParentInfo* parent,
         SplitRecord* split,
-        intp_t* n_constant_features,
-        float64_t lower_bound,
-        float64_t upper_bound,
     ) except -1 nogil
 
 

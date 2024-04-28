@@ -6,9 +6,10 @@ python_sources = [
   'test_honest_forest.py',
   'test_eiforest.py',
   'test_multiview_forest.py',
+  'test_extensions.py',
 ]
 
-py3.install_sources(
+py.install_sources(
   python_sources,
   pure: false,
   subdir: 'sktree/tests'
