@@ -2,8 +2,38 @@ from .._lib.sklearn.tree._splitter cimport (
     SplitConditionParameters,
     SplitConditionFunction,
     SplitConditionTuple,
-    SplitCondition
+    SplitCondition,
+    Splitter,
+    SplitRecord,
+    intp_t,
+    float64_t
     )
+
+cdef bint min_estimator_sample_leaf_condition(
+    Splitter splitter,
+    SplitRecord* current_split,
+    intp_t n_missing,
+    bint missing_go_to_left,
+    float64_t lower_bound,
+    float64_t upper_bound,
+    SplitConditionParameters split_condition_parameters
+) noexcept nogil:
+    # FOR NOW DON'T FUSS ABOUT missing_go_to_left
+    cdef intp_t min_samples_leaf = splitter.min_samples_leaf
+    cdef intp_t end_non_missing = splitter.end # - n_missing
+    cdef intp_t n_left, n_right
+
+    n_left = current_split.pos - splitter.start
+    n_right = end_non_missing - current_split.pos # + n_missing
+
+    # Reject if min_samples_leaf is not guaranteed
+    if n_left < min_samples_leaf or n_right < min_samples_leaf:
+        return False
+
+    return True
+
+cdef class MinSamplesLeafCondition(SplitCondition):
+    pass
 
 # from .._lib.sklearn.tree._criterion import Criterion
 

@@ -4,7 +4,7 @@
 
 from libc.stdlib cimport qsort
 from libc.string cimport memcpy
-from sklearn.tree._utils cimport log
+from .._lib.sklearn.tree._utils cimport log
 
 
 # Sort n-element arrays pointed to by Xf and samples, simultaneously,
